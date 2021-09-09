@@ -8,6 +8,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 var block_img *ebiten.Image
@@ -115,6 +116,17 @@ func (g *Game) Set_Move_Block() {
 func (g *Game) Update(screen *ebiten.Image) error {
 	temp := float64(time.Now().UnixNano() / 1000000)
 	g.time_data = temp - g.old_time_data
+
+	if inpututil.IsKeyJustPressed((ebiten.KeyRight)) {
+		if g.Can_Move_Block(1, 0) {
+			g.Down_X += 1
+		}
+	}
+	if inpututil.IsKeyJustPressed((ebiten.KeyLeft)) {
+		if g.Can_Move_Block(-1, 0) {
+			g.Down_X -= 1
+		}
+	}
 
 	switch g.Game_S {
 	case Game_S_Down:
