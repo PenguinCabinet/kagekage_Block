@@ -234,6 +234,15 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		} else {
 		}
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		dy := 0
+		for g.Can_Move_Block(0, dy) {
+			dy += 1
+		}
+		dy -= 1
+		g.Down_Y += dy
+	}
 	if ebiten.IsKeyPressed((ebiten.KeyDown)) {
 		g.Down_speed_time = 50
 	} else {
@@ -293,7 +302,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 			g.old_time_data = temp
 		}
 	case Game_S_Make:
-		if g.time_data >= 100 {
+		if g.time_data >= 10 {
 			g.Make_Block(screen)
 			g.old_time_data = temp
 			g.Game_S = Game_S_Down
@@ -343,16 +352,11 @@ func main() {
 
 	err = client.SetActivity(client.Activity{
 		State:      "KageKage_Tetris!!!",
-		Details:    "I'm playing on KageKage_Tetris!",
+		Details:    "I'm playing KageKage_Tetris!",
 		LargeImage: "icon",
 		//LargeText:  "This is the large image :D",
 		SmallImage: "icon",
 		//SmallText:  "And this is the small image",
-		Party: &client.Party{
-			ID:         "-1",
-			Players:    15,
-			MaxPlayers: 24,
-		},
 		Timestamps: &client.Timestamps{
 			Start: &Game_Start_time,
 		},
