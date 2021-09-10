@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hugolgst/rich-go/client"
 )
 
 var block_img *ebiten.Image
@@ -333,6 +334,34 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func main() {
+	err := client.Login("885929853793210368")
+	if err != nil {
+		panic(err)
+	}
+
+	Game_Start_time := time.Now()
+
+	err = client.SetActivity(client.Activity{
+		State:      "KageKage_Tetris!!!",
+		Details:    "I'm playing on KageKage_Tetris!",
+		LargeImage: "icon",
+		//LargeText:  "This is the large image :D",
+		SmallImage: "icon",
+		//SmallText:  "And this is the small image",
+		Party: &client.Party{
+			ID:         "-1",
+			Players:    15,
+			MaxPlayers: 24,
+		},
+		Timestamps: &client.Timestamps{
+			Start: &Game_Start_time,
+		},
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
 	ebiten.SetWindowSize(600, 800)
 	ebiten.SetWindowTitle("KageKage_tetris")
 	g := &Game{Data: [][]int{}}
