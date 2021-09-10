@@ -48,11 +48,13 @@ type Game struct {
 	Down_X            int     //y,x
 	Down_Y            int     //y,x
 	Down_Data         [][]int //y,x
+	Down_speed_time   float64
 	Data              [][]int //y,x
 	time_data         float64
 	old_time_data     float64
 	key_time_data     float64
 	key_old_time_data float64
+	key_count         int
 	Game_S            int
 	Can_Del_Line_data []bool
 }
@@ -71,6 +73,7 @@ func (g *Game) Init() error {
 	g.time_data = g.old_time_data
 	g.key_old_time_data = float64(time.Now().UnixNano() / 1000000)
 	g.key_time_data = g.key_old_time_data
+	g.Down_speed_time = 500
 	return nil
 }
 
@@ -201,31 +204,45 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	g.time_data = temp - g.old_time_data
 	g.key_time_data = temp - g.key_old_time_data
 
-	if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
-		if ebiten.IsKeyPressed(ebiten.KeyRight) {
-			if g.Can_Move_Block(1, 0) {
+	//if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
+	if ebiten.IsKeyPressed(ebiten.KeyRight) {
+		if g.Can_Move_Block(1, 0) {
+			if g.key_count == 0 || g.key_count >= 10 {
 				g.Down_X += 1
 				g.key_old_time_data = temp
+				g.key_count = 0
 			}
+			g.key_count += 1
 		}
-		if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
-			if g.Can_Move_Block(-1, 0) {
+	} else if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
+		if g.Can_Move_Block(-1, 0) {
+			if g.key_count == 0 || g.key_count >= 10 {
 				g.Down_X -= 1
 				g.key_old_time_data = temp
+				g.key_count = 0
 			}
+			g.key_count += 1
 		}
-		if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-			if g.Can_Rotate() {
-				g.Rotate()
-				g.key_old_time_data = temp
-			} else {
-			}
+	} else {
+		g.key_count = 0
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+		if g.Can_Rotate() {
+			g.Rotate()
+			g.key_old_time_data = temp
+		} else {
 		}
 	}
+	if ebiten.IsKeyPressed((ebiten.KeyDown)) {
+		g.Down_speed_time = 50
+	} else {
+		g.Down_speed_time = 500
+	}
+	//}
 
 	switch g.Game_S {
 	case Game_S_Down:
-		if g.time_data >= 500 {
+		if g.time_data >= g.Down_speed_time {
 			if g.Can_Move_Block(0, 1) {
 				g.Down_Y += 1
 				g.old_time_data = temp
