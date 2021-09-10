@@ -7,6 +7,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 var block_img *ebiten.Image
@@ -50,6 +51,8 @@ type Game struct {
 	Data              [][]int //y,x
 	time_data         float64
 	old_time_data     float64
+	key_time_data     float64
+	key_old_time_data float64
 	Game_S            int
 	Can_Del_Line_data []bool
 }
@@ -66,6 +69,8 @@ func (g *Game) Init() error {
 	}
 	g.old_time_data = float64(time.Now().UnixNano() / 1000000)
 	g.time_data = g.old_time_data
+	g.key_old_time_data = float64(time.Now().UnixNano() / 1000000)
+	g.key_time_data = g.key_old_time_data
 	return nil
 }
 
@@ -109,7 +114,9 @@ func (g *Game) Can_Move_Block(dx, dy int) bool {
 func (g *Game) Set_Move_Block() {
 	for y := 0; y < len(g.Down_Data); y++ {
 		for x := 0; x < len(g.Down_Data[y]); x++ {
-			g.Data[g.Down_Y+y][g.Down_X+x] = g.Down_Data[y][x]
+			if g.Down_Data[y][x] == 1 {
+				g.Data[g.Down_Y+y][g.Down_X+x] = g.Down_Data[y][x]
+			}
 		}
 	}
 }
@@ -151,26 +158,74 @@ func (g *Game) Del_line(lines []bool) {
 	g.Data = New_Data
 }
 
+func (g *Game) Can_Rotate() bool {
+	for y := 0; y < len(g.Down_Data); y++ {
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			ty := y
+			tx := len(g.Down_Data[y]) - 1 - x
+			if g.Down_Data[tx][ty] == 1 {
+				if 0 <= g.Down_Y+y && g.Down_Y+y < len(g.Data) && 0 <= g.Down_X+x && g.Down_X+x < len(g.Data[0]) {
+					if g.Data[g.Down_Y+y][g.Down_X+x] == 1 {
+						return false
+					}
+				} else {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+func (g *Game) Rotate() {
+	temp := make([][]int, len(g.Down_Data))
+	for y := 0; y < len(g.Down_Data); y++ {
+		temp[y] = make([]int, len(g.Down_Data[y]))
+	}
+	for y := 0; y < len(g.Down_Data); y++ {
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			temp[y][x] = g.Down_Data[y][x]
+		}
+	}
+	for y := 0; y < len(g.Down_Data); y++ {
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			ty := y
+			tx := len(g.Down_Data[y]) - 1 - x
+			g.Down_Data[y][x] = temp[tx][ty]
+		}
+	}
+}
+
 func (g *Game) Update(screen *ebiten.Image) error {
 	temp := float64(time.Now().UnixNano() / 1000000)
 	g.time_data = temp - g.old_time_data
+	g.key_time_data = temp - g.key_old_time_data
 
-	if g.time_data >= 100 && g.Game_S == Game_S_Down {
+	if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
 		if ebiten.IsKeyPressed(ebiten.KeyRight) {
 			if g.Can_Move_Block(1, 0) {
 				g.Down_X += 1
+				g.key_old_time_data = temp
 			}
 		}
 		if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
 			if g.Can_Move_Block(-1, 0) {
 				g.Down_X -= 1
+				g.key_old_time_data = temp
+			}
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+			if g.Can_Rotate() {
+				g.Rotate()
+				g.key_old_time_data = temp
+			} else {
 			}
 		}
 	}
 
 	switch g.Game_S {
 	case Game_S_Down:
-		if g.time_data >= 100 {
+		if g.time_data >= 500 {
 			if g.Can_Move_Block(0, 1) {
 				g.Down_Y += 1
 				g.old_time_data = temp
