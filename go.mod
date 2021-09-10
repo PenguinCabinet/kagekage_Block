@@ -2,4 +2,7 @@ module kagekage_tetris
 
 go 1.16
 
-require github.com/hajimehoshi/ebiten v1.12.12 // indirect
+require (
+	github.com/hajimehoshi/ebiten v1.12.12 // indirect
+	github.com/thoas/go-funk v0.9.1 // indirect
+)

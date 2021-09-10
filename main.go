@@ -1,14 +1,12 @@
 package main
 
 import (
-	"fmt"
 	_ "image/png"
 	"log"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
-	"github.com/hajimehoshi/ebiten/inpututil"
 )
 
 var block_img *ebiten.Image
@@ -41,16 +39,19 @@ const (
 	Game_S_Make = iota
 	Game_S_Down
 	Game_S_Down_End
+	Game_S_Del_check
+	Game_S_Del
 )
 
 type Game struct {
-	Down_X        int     //y,x
-	Down_Y        int     //y,x
-	Down_Data     [][]int //y,x
-	Data          [][]int //y,x
-	time_data     float64
-	old_time_data float64
-	Game_S        int
+	Down_X            int     //y,x
+	Down_Y            int     //y,x
+	Down_Data         [][]int //y,x
+	Data              [][]int //y,x
+	time_data         float64
+	old_time_data     float64
+	Game_S            int
+	Can_Del_Line_data []bool
 }
 
 func (g *Game) Init() error {
@@ -113,18 +114,57 @@ func (g *Game) Set_Move_Block() {
 	}
 }
 
+func (g *Game) Can_Del_Line() ([]bool, bool) {
+	Is_all_ok := false
+	A := make([]bool, len(g.Data))
+	for y := 0; y < len(g.Data); y++ {
+		Is_ok := true
+		for x := 0; x < len(g.Data[y]); x++ {
+			if g.Data[y][x] == 0 {
+				Is_ok = false
+			}
+		}
+		Is_all_ok = Is_all_ok || Is_ok
+		A[y] = Is_ok
+	}
+	return A, Is_all_ok
+}
+
+func (g *Game) set_line_Data(l, v int) {
+	for x := 0; x < len(g.Data[l]); x++ {
+		g.Data[l][x] = v
+	}
+}
+
+func (g *Game) Del_line(lines []bool) {
+	s_x := len(g.Data[0])
+	New_Data := [][]int{}
+	for y := 0; y < len(g.Data); y++ {
+		if lines[y] == false {
+			New_Data = append(New_Data, g.Data[y])
+		}
+	}
+
+	for y := 0; y < len(g.Data)-len(New_Data); y++ {
+		New_Data = append([][]int{make([]int, s_x)}, New_Data...)
+	}
+	g.Data = New_Data
+}
+
 func (g *Game) Update(screen *ebiten.Image) error {
 	temp := float64(time.Now().UnixNano() / 1000000)
 	g.time_data = temp - g.old_time_data
 
-	if inpututil.IsKeyJustPressed((ebiten.KeyRight)) {
-		if g.Can_Move_Block(1, 0) {
-			g.Down_X += 1
+	if g.time_data >= 100 && g.Game_S == Game_S_Down {
+		if ebiten.IsKeyPressed(ebiten.KeyRight) {
+			if g.Can_Move_Block(1, 0) {
+				g.Down_X += 1
+			}
 		}
-	}
-	if inpututil.IsKeyJustPressed((ebiten.KeyLeft)) {
-		if g.Can_Move_Block(-1, 0) {
-			g.Down_X -= 1
+		if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
+			if g.Can_Move_Block(-1, 0) {
+				g.Down_X -= 1
+			}
 		}
 	}
 
@@ -136,13 +176,51 @@ func (g *Game) Update(screen *ebiten.Image) error {
 				g.old_time_data = temp
 			} else {
 				g.Set_Move_Block()
-				g.Game_S = Game_S_Make
+				g.Game_S = Game_S_Del_check
 				g.old_time_data = temp
 			}
 		}
+	case Game_S_Del_check:
+		ok := false
+		g.Can_Del_Line_data, ok = g.Can_Del_Line()
+		if ok {
+			g.Game_S = Game_S_Del
+		} else {
+			g.Game_S = Game_S_Make
+		}
+		g.old_time_data = temp
+	case Game_S_Del:
+		if g.time_data <= 200 {
+			for y := 0; y < len(g.Data); y++ {
+				if g.Can_Del_Line_data[y] {
+					g.set_line_Data(y, 0)
+				}
+			}
+		} else if g.time_data <= 400 {
+			for y := 0; y < len(g.Data); y++ {
+				if g.Can_Del_Line_data[y] {
+					g.set_line_Data(y, 1)
+				}
+			}
+		} else if g.time_data <= 600 {
+			for y := 0; y < len(g.Data); y++ {
+				if g.Can_Del_Line_data[y] {
+					g.set_line_Data(y, 0)
+				}
+			}
+		} else if g.time_data <= 800 {
+			for y := 0; y < len(g.Data); y++ {
+				if g.Can_Del_Line_data[y] {
+					g.set_line_Data(y, 1)
+				}
+			}
+		} else if g.time_data >= 1000 {
+			g.Del_line(g.Can_Del_Line_data)
+			g.Game_S = Game_S_Make
+			g.old_time_data = temp
+		}
 	case Game_S_Make:
-		if g.time_data >= 1000 {
-			fmt.Println("TRUE2")
+		if g.time_data >= 100 {
 			g.Make_Block(screen)
 			g.old_time_data = temp
 			g.Game_S = Game_S_Down
@@ -167,10 +245,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	for y := 0; y < len(g.Down_Data); y++ {
-		for x := 0; x < len(g.Down_Data[y]); x++ {
-			if g.Down_Data[y][x] == 1 {
-				Block_Draw_image(screen, float64(one_offset_x*(x+g.Down_X)+offset_x), float64(one_offset_y*(y+g.Down_Y)+offset_y))
+	if g.Game_S == Game_S_Down {
+		for y := 0; y < len(g.Down_Data); y++ {
+			for x := 0; x < len(g.Down_Data[y]); x++ {
+				if g.Down_Data[y][x] == 1 {
+					Block_Draw_image(screen, float64(one_offset_x*(x+g.Down_X)+offset_x), float64(one_offset_y*(y+g.Down_Y)+offset_y))
+				}
 			}
 		}
 	}
