@@ -69,6 +69,7 @@ type Game struct {
 	Game_S            int
 	Can_Del_Line_data []bool
 	score_data        int
+	Is_pause          bool
 }
 
 var Font_data font.Face
@@ -280,6 +281,13 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	g.time_data = temp - g.old_time_data
 	g.key_time_data = temp - g.key_old_time_data
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		g.Is_pause = !g.Is_pause
+	}
+	if g.Is_pause {
+		return nil
+	}
+
 	//if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
 	if g.Game_S != Game_S_End {
 		if ebiten.IsKeyPressed(ebiten.KeyRight) {
@@ -444,7 +452,59 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	text.Draw(screen, msg, Font_data, 10, 40, color.Black)
 
 	if g.Game_S == Game_S_End {
+
+		err := client.SetActivity(client.Activity{
+			State:      "KageKage_Tetris",
+			Details:    "The end",
+			LargeImage: "icon",
+			//LargeText:  "This is the large image :D",
+			SmallImage: "icon",
+			//SmallText:  "And this is the small image",
+			Timestamps: &client.Timestamps{
+				Start: &Game_Start_time,
+			},
+		})
+		if err != nil {
+			log.Fatalln(err)
+		}
+
 		text.Draw(screen, "END", Font_data, 50, 400, color.Black)
+	}
+	if g.Game_S != Game_S_End && !g.Is_pause {
+		err := client.SetActivity(client.Activity{
+			State:      "KageKage_Tetris",
+			Details:    "I'm playing " + msg,
+			LargeImage: "icon",
+			LargeText:  msg,
+			SmallImage: "icon",
+			//SmallText:  "And this is the small image",
+			Timestamps: &client.Timestamps{
+				Start: &Game_Start_time,
+			},
+		})
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}
+	if g.Is_pause {
+		err := client.SetActivity(client.Activity{
+			State:      "KageKage_Tetris",
+			Details:    "I'm pausing " + msg,
+			LargeImage: "icon",
+			LargeText:  msg,
+			SmallImage: "icon",
+			//SmallText:  "And this is the small image",
+			Timestamps: &client.Timestamps{
+				Start: &Game_Start_time,
+			},
+		})
+
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		text.Draw(screen, "Pausing", Font_data, 50, 400, color.Black)
 	}
 }
 
@@ -452,13 +512,15 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return 600, 800
 }
 
+var Game_Start_time time.Time
+
 func main() {
 	err := client.Login("885929853793210368")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
-	Game_Start_time := time.Now()
+	Game_Start_time = time.Now()
 
 	err = client.SetActivity(client.Activity{
 		State:      "KageKage_Tetris!!!",
@@ -473,7 +535,7 @@ func main() {
 	})
 
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	ebiten.SetWindowSize(600, 800)
