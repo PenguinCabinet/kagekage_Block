@@ -24,18 +24,20 @@ func init() {
 	background_img, _, err = ebitenutil.NewImageFromFile("images/frame.png", ebiten.FilterDefault)
 }
 
-func Draw_image(screen, img *ebiten.Image, x, y, s1, s2 float64) {
+func Draw_image(screen, img *ebiten.Image, x, y, s1, s2, a float64) {
 	op := &ebiten.DrawImageOptions{}
 
 	op.GeoM.Scale(s1, s2)
 
 	op.GeoM.Translate(x, y)
 
+	op.ColorM.Scale(1, 1, 1, a)
+
 	screen.DrawImage(img, op)
 }
 
-func Block_Draw_image(screen *ebiten.Image, x, y float64) {
-	Draw_image(screen, block_img, x, y, 2.8, 1.8)
+func Block_Draw_image(screen *ebiten.Image, x, y, a float64) {
+	Draw_image(screen, block_img, x, y, 2.8, 1.8, a)
 }
 
 const (
@@ -282,6 +284,9 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		}
 		dy -= 1
 		g.Down_Y += dy
+		g.Set_Move_Block()
+		g.Game_S = Game_S_Del_check
+		g.old_time_data = temp
 	}
 	if ebiten.IsKeyPressed((ebiten.KeyDown)) {
 		g.Down_speed_time = 50
@@ -353,7 +358,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	Draw_image(screen, background_img, 0, 0, 1, 1)
+	Draw_image(screen, background_img, 0, 0, 1, 1, 1)
 	offset_x := 155
 	offset_y := 110
 	one_offset_x := 29
@@ -362,7 +367,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for x := 0; x < len(g.Data[y]); x++ {
 			if g.Data[y][x] == 1 {
 				//fmt.Println("TRUE")
-				Block_Draw_image(screen, float64(one_offset_x*x+offset_x), float64(one_offset_y*y+offset_y))
+				Block_Draw_image(screen, float64(one_offset_x*x+offset_x), float64(one_offset_y*y+offset_y), 1)
 			}
 		}
 	}
@@ -371,7 +376,20 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for y := 0; y < len(g.Down_Data); y++ {
 			for x := 0; x < len(g.Down_Data[y]); x++ {
 				if g.Down_Data[y][x] == 1 {
-					Block_Draw_image(screen, float64(one_offset_x*(x+g.Down_X)+offset_x), float64(one_offset_y*(y+g.Down_Y)+offset_y))
+					Block_Draw_image(screen, float64(one_offset_x*(x+g.Down_X)+offset_x), float64(one_offset_y*(y+g.Down_Y)+offset_y), 1)
+				}
+			}
+		}
+
+		dy := 0
+		for g.Can_Move_Block(0, dy) {
+			dy += 1
+		}
+		dy -= 1
+		for y := 0; y < len(g.Down_Data); y++ {
+			for x := 0; x < len(g.Down_Data[y]); x++ {
+				if g.Down_Data[y][x] == 1 {
+					Block_Draw_image(screen, float64(one_offset_x*(x+g.Down_X)+offset_x), float64(one_offset_y*(y+g.Down_Y+dy)+offset_y), 0.5)
 				}
 			}
 		}
