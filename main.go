@@ -106,6 +106,7 @@ func (g *Game) Init() error {
 
 	}
 	g.score_data = 0
+	g.Game_S = Game_S_Make
 
 	return nil
 }
@@ -324,6 +325,11 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	} else {
 		g.Down_speed_time = 500
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		g.Init()
+	}
+
 	//}
 
 	switch g.Game_S {
