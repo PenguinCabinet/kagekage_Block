@@ -3,6 +3,7 @@ package main
 import (
 	_ "image/png"
 	"log"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -81,18 +82,56 @@ func (g *Game) Init() error {
 func (g *Game) Make_Block(screen *ebiten.Image) error {
 	pattern_data := [][][]int{
 		{
-			{0, 1, 0},
-			{0, 1, 0},
-			{1, 1, 1},
+			{0, 0, 0, 0},
+			{0, 1, 0, 0},
+			{1, 1, 1, 0},
+			{0, 0, 0, 0},
+		},
+		{
+			{0, 1, 0, 0},
+			{0, 1, 0, 0},
+			{0, 1, 0, 0},
+			{0, 1, 0, 0},
+		},
+		{
+			{0, 0, 0, 0},
+			{0, 1, 1, 0},
+			{0, 1, 1, 0},
+			{0, 0, 0, 0},
+		},
+		{
+			{0, 0, 0, 0},
+			{0, 0, 1, 1},
+			{0, 1, 1, 0},
+			{0, 0, 0, 0},
+		},
+		{
+			{0, 0, 0, 0},
+			{1, 1, 0, 0},
+			{0, 1, 1, 0},
+			{0, 0, 0, 0},
+		},
+		{
+			{0, 0, 0, 0},
+			{1, 0, 0, 0},
+			{1, 1, 1, 0},
+			{0, 0, 0, 0},
+		},
+		{
+			{0, 0, 0, 0},
+			{0, 0, 0, 1},
+			{0, 1, 1, 1},
+			{0, 0, 0, 0},
 		},
 	}
+	select_n := rand.Intn(len(pattern_data))
 	g.Down_Y = 0
-	g.Down_X = 4
-	g.Down_Data = make([][]int, 3)
-	for y := 0; y < len(pattern_data[0]); y++ {
-		g.Down_Data[y] = make([]int, 3)
-		for x := 0; x < len(pattern_data[0][y]); x++ {
-			g.Down_Data[y][x] = pattern_data[0][y][x]
+	g.Down_X = 3
+	g.Down_Data = make([][]int, len(pattern_data[select_n]))
+	for y := 0; y < len(pattern_data[select_n]); y++ {
+		g.Down_Data[y] = make([]int, len(pattern_data[select_n][y]))
+		for x := 0; x < len(pattern_data[select_n][y]); x++ {
+			g.Down_Data[y][x] = pattern_data[select_n][y][x]
 		}
 	}
 	return nil
