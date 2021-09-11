@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"image/color"
 	_ "image/png"
 	"log"
 	"math/rand"
@@ -8,8 +10,12 @@ import (
 
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
+	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"github.com/hajimehoshi/ebiten/text"
 	"github.com/hugolgst/rich-go/client"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
 var block_img *ebiten.Image
@@ -61,7 +67,10 @@ type Game struct {
 	key_count         int
 	Game_S            int
 	Can_Del_Line_data []bool
+	score_data        int
 }
+
+var Font_data font.Face
 
 func (g *Game) Init() error {
 	g.Data = make([][]int, 30)
@@ -78,6 +87,26 @@ func (g *Game) Init() error {
 	g.key_old_time_data = float64(time.Now().UnixNano() / 1000000)
 	g.key_time_data = g.key_old_time_data
 	g.Down_speed_time = 500
+
+	{
+		tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		const dpi = 72
+		Font_data, err = opentype.NewFace(tt, &opentype.FaceOptions{
+			Size:    24,
+			DPI:     dpi,
+			Hinting: font.HintingFull,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+	}
+	g.score_data = 0
+
 	return nil
 }
 
@@ -194,6 +223,8 @@ func (g *Game) Del_line(lines []bool) {
 	for y := 0; y < len(g.Data); y++ {
 		if lines[y] == false {
 			New_Data = append(New_Data, g.Data[y])
+		} else {
+			g.score_data += 10
 		}
 	}
 	temp_len := len(g.Data) - len(New_Data)
@@ -394,6 +425,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			}
 		}
 	}
+
+	msg := fmt.Sprintf("Score: %d", g.score_data)
+	text.Draw(screen, msg, Font_data, 10, 40, color.Black)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
