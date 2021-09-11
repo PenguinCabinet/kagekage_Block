@@ -52,6 +52,7 @@ const (
 	Game_S_Down_End
 	Game_S_Del_check
 	Game_S_Del
+	Game_S_End
 )
 
 type Game struct {
@@ -280,52 +281,53 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	g.key_time_data = temp - g.key_old_time_data
 
 	//if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
-	if ebiten.IsKeyPressed(ebiten.KeyRight) {
-		if g.Can_Move_Block(1, 0) {
-			if g.key_count == 0 || g.key_count >= 10 {
-				g.Down_X += 1
-				g.key_old_time_data = temp
-				g.key_count = 0
+	if g.Game_S != Game_S_End {
+		if ebiten.IsKeyPressed(ebiten.KeyRight) {
+			if g.Can_Move_Block(1, 0) {
+				if g.key_count == 0 || g.key_count >= 10 {
+					g.Down_X += 1
+					g.key_old_time_data = temp
+					g.key_count = 0
+				}
+				g.key_count += 1
 			}
-			g.key_count += 1
-		}
-	} else if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
-		if g.Can_Move_Block(-1, 0) {
-			if g.key_count == 0 || g.key_count >= 10 {
-				g.Down_X -= 1
-				g.key_old_time_data = temp
-				g.key_count = 0
+		} else if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
+			if g.Can_Move_Block(-1, 0) {
+				if g.key_count == 0 || g.key_count >= 10 {
+					g.Down_X -= 1
+					g.key_old_time_data = temp
+					g.key_count = 0
+				}
+				g.key_count += 1
 			}
-			g.key_count += 1
-		}
-	} else {
-		g.key_count = 0
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		if g.Can_Rotate() {
-			g.Rotate()
-			g.key_old_time_data = temp
 		} else {
+			g.key_count = 0
+		}
+		if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+			if g.Can_Rotate() {
+				g.Rotate()
+				g.key_old_time_data = temp
+			} else {
+			}
+		}
+
+		if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+			dy := 0
+			for g.Can_Move_Block(0, dy) {
+				dy += 1
+			}
+			dy -= 1
+			g.Down_Y += dy
+			g.Set_Move_Block()
+			g.Game_S = Game_S_Del_check
+			g.old_time_data = temp
+		}
+		if ebiten.IsKeyPressed((ebiten.KeyDown)) {
+			g.Down_speed_time = 50
+		} else {
+			g.Down_speed_time = 500
 		}
 	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		dy := 0
-		for g.Can_Move_Block(0, dy) {
-			dy += 1
-		}
-		dy -= 1
-		g.Down_Y += dy
-		g.Set_Move_Block()
-		g.Game_S = Game_S_Del_check
-		g.old_time_data = temp
-	}
-	if ebiten.IsKeyPressed((ebiten.KeyDown)) {
-		g.Down_speed_time = 50
-	} else {
-		g.Down_speed_time = 500
-	}
-
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 		g.Init()
 	}
@@ -386,8 +388,14 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	case Game_S_Make:
 		if g.time_data >= 10 {
 			g.Make_Block(screen)
-			g.old_time_data = temp
-			g.Game_S = Game_S_Down
+			if g.Can_Move_Block(0, 0) {
+				g.old_time_data = temp
+				g.Game_S = Game_S_Down
+			} else {
+				g.old_time_data = temp
+				g.Game_S = Game_S_End
+				g.Set_Move_Block()
+			}
 		}
 	}
 
@@ -434,6 +442,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	msg := fmt.Sprintf("Score: %d", g.score_data)
 	text.Draw(screen, msg, Font_data, 10, 40, color.Black)
+
+	if g.Game_S == Game_S_End {
+		text.Draw(screen, "END", Font_data, 50, 400, color.Black)
+	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
