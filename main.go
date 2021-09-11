@@ -194,9 +194,10 @@ func (g *Game) Del_line(lines []bool) {
 			New_Data = append(New_Data, g.Data[y])
 		}
 	}
-
-	for y := 0; y < len(g.Data)-len(New_Data); y++ {
+	temp_len := len(g.Data) - len(New_Data)
+	for y := 0; y < temp_len; y++ {
 		New_Data = append([][]int{make([]int, s_x)}, New_Data...)
+
 	}
 	g.Data = New_Data
 }
