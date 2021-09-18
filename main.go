@@ -21,6 +21,8 @@ import (
 var block_img *ebiten.Image
 var background_img *ebiten.Image
 
+var delta_time float64
+
 func init() {
 	var err error
 	block_img, _, err = ebitenutil.NewImageFromFile("images/block.png", ebiten.FilterDefault)
@@ -59,17 +61,20 @@ type Game struct {
 	Down_X            int     //y,x
 	Down_Y            int     //y,x
 	Down_Data         [][]int //y,x
+	Down_Hold_Data    [][]int //y,x
 	Down_speed_time   float64
 	Data              [][]int //y,x
 	time_data         float64
 	old_time_data     float64
 	key_time_data     float64
 	key_old_time_data float64
-	key_count         int
+	key_count         float64
 	Game_S            int
 	Can_Del_Line_data []bool
 	score_data        int
 	Is_pause          bool
+	Did_hold          bool
+	Back_Frame_time   float64
 }
 
 var Font_data font.Face
@@ -110,10 +115,15 @@ func (g *Game) Init() error {
 	g.score_data = 0
 	g.Game_S = Game_S_Make
 
+	g.Down_Hold_Data = nil
+
+	g.Back_Frame_time = float64(time.Now().UnixNano() / 1000000)
+
+	g.Set_Ability_Run()
 	return nil
 }
 
-func (g *Game) Make_Block(screen *ebiten.Image) error {
+func (g *Game) Make_Block() error {
 	pattern_data := [][][]int{
 		{
 			{0, 0, 0, 0},
@@ -228,6 +238,7 @@ func (g *Game) Del_line(lines []bool) {
 			New_Data = append(New_Data, g.Data[y])
 		} else {
 			g.score_data += 10
+			g.Set_Ability_Run()
 		}
 	}
 	temp_len := len(g.Data) - len(New_Data)
@@ -276,37 +287,89 @@ func (g *Game) Rotate() {
 	}
 }
 
+func (g *Game) Hold() {
+	if g.Did_hold {
+		return
+	}
+	temp := make([][]int, len(g.Down_Data))
+	for y := 0; y < len(g.Down_Data); y++ {
+		temp[y] = make([]int, len(g.Down_Data[y]))
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			temp[y][x] = g.Down_Data[y][x]
+		}
+	}
+
+	if g.Down_Hold_Data != nil {
+		g.Release()
+	} else {
+		g.Make_Block()
+	}
+
+	g.Down_Hold_Data = make([][]int, len(g.Down_Data))
+	for y := 0; y < len(g.Down_Data); y++ {
+		g.Down_Hold_Data[y] = make([]int, len(g.Down_Data[y]))
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			g.Down_Hold_Data[y][x] = temp[y][x]
+		}
+	}
+
+	g.Did_hold = true
+
+}
+
+func (g *Game) Release() {
+	g.Down_Y = 0
+	g.Down_X = 3
+	for y := 0; y < len(g.Down_Data); y++ {
+		for x := 0; x < len(g.Down_Data[y]); x++ {
+			g.Down_Data[y][x] = g.Down_Hold_Data[y][x]
+		}
+	}
+}
+
 func (g *Game) Update(screen *ebiten.Image) error {
 	temp := float64(time.Now().UnixNano() / 1000000)
+
+	defer (func() {
+		g.Back_Frame_time = temp
+	})()
+
+	delta_time = temp - g.Back_Frame_time
+
 	g.time_data = temp - g.old_time_data
 	g.key_time_data = temp - g.key_old_time_data
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyP) {
 		g.Is_pause = !g.Is_pause
+		if g.Is_pause {
+			g.Set_Ability_Pausing()
+		} else {
+			g.Set_Ability_Run()
+		}
 	}
 	if g.Is_pause {
 		return nil
 	}
 
 	//if g.key_time_data >= 100 && g.Game_S == Game_S_Down {
-	if g.Game_S != Game_S_End {
+	if g.Game_S != Game_S_End && g.Game_S != Game_S_Del {
 		if ebiten.IsKeyPressed(ebiten.KeyRight) {
 			if g.Can_Move_Block(1, 0) {
-				if g.key_count == 0 || g.key_count >= 10 {
+				if g.key_count == 0 || g.key_count >= 250 {
 					g.Down_X += 1
 					g.key_old_time_data = temp
 					g.key_count = 0
 				}
-				g.key_count += 1
+				g.key_count += delta_time
 			}
 		} else if ebiten.IsKeyPressed((ebiten.KeyLeft)) {
 			if g.Can_Move_Block(-1, 0) {
-				if g.key_count == 0 || g.key_count >= 10 {
+				if g.key_count == 0 || g.key_count >= 250 {
 					g.Down_X -= 1
 					g.key_old_time_data = temp
 					g.key_count = 0
 				}
-				g.key_count += 1
+				g.key_count += delta_time
 			}
 		} else {
 			g.key_count = 0
@@ -338,6 +401,10 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
 		g.Init()
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		g.Hold()
 	}
 
 	//}
@@ -395,7 +462,8 @@ func (g *Game) Update(screen *ebiten.Image) error {
 		}
 	case Game_S_Make:
 		if g.time_data >= 10 {
-			g.Make_Block(screen)
+			g.Make_Block()
+			g.Did_hold = false
 			if g.Can_Move_Block(0, 0) {
 				g.old_time_data = temp
 				g.Game_S = Game_S_Down
@@ -403,6 +471,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 				g.old_time_data = temp
 				g.Game_S = Game_S_End
 				g.Set_Move_Block()
+				g.Set_Ability_End()
 			}
 		}
 	}
@@ -410,8 +479,67 @@ func (g *Game) Update(screen *ebiten.Image) error {
 	return nil
 }
 
+func (g *Game) Set_Ability_End() {
+	err := client.SetActivity(client.Activity{
+		State:      "KageKage_Tetris",
+		Details:    "The end",
+		LargeImage: "icon",
+		//LargeText:  "This is the large image :D",
+		SmallImage: "icon",
+		//SmallText:  "And this is the small image",
+		Timestamps: &client.Timestamps{
+			Start: &Game_Start_time,
+		},
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+}
+
+func (g *Game) Set_Ability_Run() {
+	msg := fmt.Sprintf("Score: %d", g.score_data)
+	err := client.SetActivity(client.Activity{
+		State:      "KageKage_Tetris",
+		Details:    "I'm playing " + msg,
+		LargeImage: "icon",
+		LargeText:  msg,
+		SmallImage: "icon",
+		//SmallText:  "And this is the small image",
+		Timestamps: &client.Timestamps{
+			Start: &Game_Start_time,
+		},
+	})
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+}
+func (g *Game) Set_Ability_Pausing() {
+	msg := fmt.Sprintf("Score: %d", g.score_data)
+	err := client.SetActivity(client.Activity{
+		State:      "KageKage_Tetris",
+		Details:    "I'm pausing " + msg,
+		LargeImage: "icon",
+		LargeText:  msg,
+		SmallImage: "icon",
+		//SmallText:  "And this is the small image",
+		Timestamps: &client.Timestamps{
+			Start: &Game_Start_time,
+		},
+	})
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+
 func (g *Game) Draw(screen *ebiten.Image) {
 	Draw_image(screen, background_img, 0, 0, 1, 1, 1)
+	msg2 := fmt.Sprintf("FPS: %0.2f", ebiten.CurrentFPS())
+	text.Draw(screen, msg2, Font_data, 10, 100, color.Black)
+
 	offset_x := 155
 	offset_y := 110
 	one_offset_x := 29
@@ -425,6 +553,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	{
+		hold_offset_x := 15
+		hold_offset_y := 500
+		for y := 0; y < len(g.Down_Hold_Data); y++ {
+			for x := 0; x < len(g.Down_Hold_Data[y]); x++ {
+				if g.Down_Hold_Data[y][x] == 1 {
+					Block_Draw_image(screen, float64(one_offset_x*(x)+hold_offset_x), float64(one_offset_y*(y)+hold_offset_y), 1)
+				}
+			}
+		}
+
+	}
 	if g.Game_S == Game_S_Down {
 		for y := 0; y < len(g.Down_Data); y++ {
 			for x := 0; x < len(g.Down_Data[y]); x++ {
@@ -453,57 +593,48 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	if g.Game_S == Game_S_End {
 
-		err := client.SetActivity(client.Activity{
-			State:      "KageKage_Tetris",
-			Details:    "The end",
-			LargeImage: "icon",
-			//LargeText:  "This is the large image :D",
-			SmallImage: "icon",
-			//SmallText:  "And this is the small image",
-			Timestamps: &client.Timestamps{
-				Start: &Game_Start_time,
-			},
-		})
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		text.Draw(screen, "END", Font_data, 50, 400, color.Black)
 	}
-	if g.Game_S != Game_S_End && !g.Is_pause {
-		err := client.SetActivity(client.Activity{
-			State:      "KageKage_Tetris",
-			Details:    "I'm playing " + msg,
-			LargeImage: "icon",
-			LargeText:  msg,
-			SmallImage: "icon",
-			//SmallText:  "And this is the small image",
-			Timestamps: &client.Timestamps{
-				Start: &Game_Start_time,
-			},
-		})
+	/*
 
-		if err != nil {
-			log.Fatalln(err)
-		}
-	}
+		go (func() {
+			if g.Game_S != Game_S_End && !g.Is_pause {
+				err := client.SetActivity(client.Activity{
+					State:      "KageKage_Tetris",
+					Details:    "I'm playing " + msg,
+					LargeImage: "icon",
+					LargeText:  msg,
+					SmallImage: "icon",
+					//SmallText:  "And this is the small image",
+					Timestamps: &client.Timestamps{
+						Start: &Game_Start_time,
+					},
+				})
+
+				if err != nil {
+					log.Fatalln(err)
+				}
+			}
+			if g.Is_pause {
+				err := client.SetActivity(client.Activity{
+					State:      "KageKage_Tetris",
+					Details:    "I'm pausing " + msg,
+					LargeImage: "icon",
+					LargeText:  msg,
+					SmallImage: "icon",
+					//SmallText:  "And this is the small image",
+					Timestamps: &client.Timestamps{
+						Start: &Game_Start_time,
+					},
+				})
+
+				if err != nil {
+					log.Fatalln(err)
+				}
+			}
+		})()
+	*/
+
 	if g.Is_pause {
-		err := client.SetActivity(client.Activity{
-			State:      "KageKage_Tetris",
-			Details:    "I'm pausing " + msg,
-			LargeImage: "icon",
-			LargeText:  msg,
-			SmallImage: "icon",
-			//SmallText:  "And this is the small image",
-			Timestamps: &client.Timestamps{
-				Start: &Game_Start_time,
-			},
-		})
-
-		if err != nil {
-			log.Fatalln(err)
-		}
-
 		text.Draw(screen, "Pausing", Font_data, 50, 400, color.Black)
 	}
 }
@@ -540,6 +671,7 @@ func main() {
 
 	ebiten.SetWindowSize(600, 800)
 	ebiten.SetWindowTitle("KageKage_tetris")
+	ebiten.SetMaxTPS(-1)
 	g := &Game{Data: [][]int{}}
 	g.Init()
 	if err := ebiten.RunGame(g); err != nil {
