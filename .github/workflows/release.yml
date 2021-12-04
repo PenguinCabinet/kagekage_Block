@@ -1,8 +1,7 @@
 name: release
 on:
   push:
-    tags:
-    - "v[0-9]+.[0-9]+.[0-9]+"
+
 env:
     KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
 jobs:
