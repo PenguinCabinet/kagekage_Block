@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"image/color"
 	_ "image/png"
+	_ "embed"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
