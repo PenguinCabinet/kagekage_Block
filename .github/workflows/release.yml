@@ -19,7 +19,7 @@ jobs:
       - name: Install Library
         run: |
           sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r"
-          sudo apt-get install libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
+          sudo apt-get install -y libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
       - name: Add secret
         run: echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
       - name: Run GoReleaser
