@@ -646,8 +646,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 var Game_Start_time time.Time
 
+//go:embed key.txt
+var KAGEKAGE_TETRIS_DISCORD_KEY string
+
 func main() {
-	err := client.Login(os.Getenv("KAGEKAGE_TETRIS_DISCORD_KEY"))
+	err := client.Login(KAGEKAGE_TETRIS_DISCORD_KEY)
 	if err != nil {
 		log.Print(err)
 	}
