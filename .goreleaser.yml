@@ -5,9 +5,9 @@ before:
   hooks:
     - go mod tidy
 builds:
-  - env:
-    - CGO_ENABLED=1
   - main: .
+    env:
+    - CGO_ENABLED=1
     binary: kagekage_Tetris
     ldflags:
       - -s -w
