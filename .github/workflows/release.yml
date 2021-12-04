@@ -1,6 +1,8 @@
 name: release
 on:
   push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
 
 env:
     KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
@@ -47,25 +49,5 @@ jobs:
         with:
           version: latest
           args: release --rm-dist --config=.goreleaser_windows.yml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  goreleaser-macOS:
-    runs-on: macOS-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-      - name: Setup Go
-        uses: actions/setup-go@v1
-        with:
-          go-version: 1.17
-      - name: Add secret
-        run: echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: release --rm-dist --config=.goreleaser_darwin.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
