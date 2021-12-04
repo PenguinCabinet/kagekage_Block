@@ -6,6 +6,7 @@ import (
 	_ "image/png"
 	"log"
 	"math/rand"
+	"os"
 	"time"
 
 	"github.com/hajimehoshi/ebiten"
@@ -492,7 +493,7 @@ func (g *Game) Set_Ability_End() {
 		},
 	})
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 	}
 
 }
@@ -512,7 +513,7 @@ func (g *Game) Set_Ability_Run() {
 	})
 
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 	}
 
 }
@@ -646,9 +647,9 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 var Game_Start_time time.Time
 
 func main() {
-	err := client.Login("885929853793210368")
+	err := client.Login(os.Getenv("KAGEKAGE_TETRIS_DISCORD_KEY"))
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 	}
 
 	Game_Start_time = time.Now()
@@ -666,7 +667,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatalln(err)
+		log.Print(err)
 	}
 
 	ebiten.SetWindowSize(600, 800)
