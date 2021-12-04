@@ -6,15 +6,13 @@ before:
     - go mod tidy
 builds:
   - main: .
-    env:
-    - CGO_ENABLED=1
     binary: kagekage_Tetris
     ldflags:
       - -s -w
       - -X main.Version={{.Version}}
       - -X main.Revision={{.ShortCommit}}
     env:
-      - CGO_ENABLED=0
+      - CGO_ENABLED=1
     goos:
       - windows
       - linux
