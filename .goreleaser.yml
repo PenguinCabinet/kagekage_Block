@@ -16,6 +16,9 @@ builds:
     goos:
       - windows
       - linux
+      - darwin
+    goarch:
+      - amd64
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
