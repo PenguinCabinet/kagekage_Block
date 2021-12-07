@@ -33,6 +33,7 @@ archives:
         format: zip
     files:
       - images
-
+      - README.md
+      
 release:
   prerelease: auto
