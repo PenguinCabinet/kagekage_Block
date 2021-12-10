@@ -21,7 +21,8 @@ jobs:
           sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r"
           sudo apt-get install -y libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
       - name: Add secret
-        run: echo $KAGEKAGE_TETRIS_DISCORD_KEY ;echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
+        run: 'echo "$KAGEKAGE_TETRIS_DISCORD_KEY" > key.txt'
+        shell: bash
         env:
           KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
       - name: ls
@@ -47,7 +48,8 @@ jobs:
         with:
           go-version: 1.17
       - name: Add secret
-        run: echo $KAGEKAGE_TETRIS_DISCORD_KEY ;echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
+        run: 'echo "$KAGEKAGE_TETRIS_DISCORD_KEY" > key.txt'
+        shell: powershell
         env:
           KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
       - name: echo
