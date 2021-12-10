@@ -4,8 +4,6 @@ on:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
 
-env:
-    KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
 jobs:
   goreleaser-linux:
     runs-on: ubuntu-latest
@@ -24,6 +22,10 @@ jobs:
           sudo apt-get install -y libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev
       - name: Add secret
         run: echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
+        env:
+          KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
+      - name: ls
+        run: ls
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
@@ -44,6 +46,8 @@ jobs:
           go-version: 1.17
       - name: Add secret
         run: echo $KAGEKAGE_TETRIS_DISCORD_KEY > key.txt
+        env:
+          KAGEKAGE_TETRIS_DISCORD_KEY: ${{secrets.DISCORD_KEY}}
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
