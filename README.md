@@ -13,7 +13,7 @@ Go+Ebitenで書かれています。
 # 特徴
 * One バイナリ
 * OSS、完全にフリー
-* Discord Game Activityに対応(不具合があり修正予定)
+* Discord Game Activityに対応
 
 # 使い方
 * 左右矢印キーで移動
