@@ -27,13 +27,6 @@ jobs:
           args: release --rm-dist --config=.goreleaser_linux.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run GoReleaser Arm
-        uses: goreleaser/goreleaser-action@v1
-        with:
-          version: latest
-          args: release --rm-dist --config=.goreleaser_linux_arm.yml
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   goreleaser-windows:
     runs-on: windows-latest
     steps:
