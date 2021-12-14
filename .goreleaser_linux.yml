@@ -31,7 +31,7 @@ builds:
       - -X main.Revision={{.ShortCommit}}
     env:
       - CGO_ENABLED=1
-      - CC=clang-12
+      - CC=arm-linux-gnueabihf-gcc
     goos:
       - linux
     goarch:
