@@ -10,6 +10,7 @@ checksum:
 
 builds:
   - main: .
+    id: kagekage_Tetris
     binary: kagekage_Tetris
     ldflags:
       - -s -w
@@ -22,6 +23,7 @@ builds:
     goarch:
       - amd64
   - main: .
+    id: kagekage_Tetris_ARM
     binary: kagekage_Tetris-ARM
     ldflags:
       - -s -w
