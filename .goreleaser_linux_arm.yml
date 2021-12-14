@@ -6,7 +6,7 @@ before:
     - go mod tidy
 
 checksum:
-  name_template: "{{ .ProjectName }}_linux_checksums.txt"
+  name_template: "{{ .ProjectName }}_linux_arm_checksums.txt"
 
 builds:
   - main: .
@@ -17,10 +17,11 @@ builds:
       - -X main.Revision={{.ShortCommit}}
     env:
       - CGO_ENABLED=1
+      - CC=arm-linux-gnueabi-gcc
     goos:
       - linux
     goarch:
-      - amd64
+      - arm
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
