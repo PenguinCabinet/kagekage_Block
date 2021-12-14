@@ -19,7 +19,7 @@ jobs:
       - name: Install Library
         run: |
           sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r"
-          sudo apt-get install -y libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev gcc-arm-none-eabi
+          sudo apt-get install -y libasound2-dev libglew-dev libgles2-mesa-dev libalut-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libxxf86vm-dev  crossbuild-essential-arm64
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v1
         with:
