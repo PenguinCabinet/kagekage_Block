@@ -22,20 +22,6 @@ builds:
       - linux
     goarch:
       - amd64
-  - main: .
-    id: kagekage_Tetris_ARM
-    binary: kagekage_Tetris-ARM
-    ldflags:
-      - -s -w
-      - -X main.Version={{.Version}}
-      - -X main.Revision={{.ShortCommit}}
-    env:
-      - CGO_ENABLED=1
-      - CC=arm-linux-gnueabihf-gcc
-    goos:
-      - linux
-    goarch:
-      - arm
 
 archives:
   - name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
