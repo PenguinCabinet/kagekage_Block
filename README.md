@@ -9,7 +9,7 @@
 これはシンプルなOSSテトリスライククローンゲームです。\
 Go+Ebitenで書かれています。
 
-<a><img src="./explain/download.png" alt="Download"></a>
+<a href="https://github.com/PenguinCabinet/kagekage_Tetris/releases/latest"><img src="./explain/download.png" alt="Download"></a>
 # 特徴
 * One バイナリ
 * OSS、完全にフリー
