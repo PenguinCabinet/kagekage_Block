@@ -1,4 +1,4 @@
-module kagekage_tetris
+module kagekage_Block
 
 go 1.16
 

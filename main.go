@@ -1,10 +1,10 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"image/color"
 	_ "image/png"
-	_ "embed"
 	"log"
 	"math/rand"
 	"time"
@@ -482,7 +482,7 @@ func (g *Game) Update(screen *ebiten.Image) error {
 
 func (g *Game) Set_Ability_End() {
 	err := client.SetActivity(client.Activity{
-		State:      "KageKage_Tetris",
+		State:      "KageKage_Block",
 		Details:    "The end",
 		LargeImage: "icon",
 		//LargeText:  "This is the large image :D",
@@ -501,7 +501,7 @@ func (g *Game) Set_Ability_End() {
 func (g *Game) Set_Ability_Run() {
 	msg := fmt.Sprintf("Score: %d", g.score_data)
 	err := client.SetActivity(client.Activity{
-		State:      "KageKage_Tetris",
+		State:      "KageKage_Block",
 		Details:    "I'm playing " + msg,
 		LargeImage: "icon",
 		LargeText:  msg,
@@ -520,7 +520,7 @@ func (g *Game) Set_Ability_Run() {
 func (g *Game) Set_Ability_Pausing() {
 	msg := fmt.Sprintf("Score: %d", g.score_data)
 	err := client.SetActivity(client.Activity{
-		State:      "KageKage_Tetris",
+		State:      "KageKage_Block",
 		Details:    "I'm pausing " + msg,
 		LargeImage: "icon",
 		LargeText:  msg,
@@ -600,7 +600,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		go (func() {
 			if g.Game_S != Game_S_End && !g.Is_pause {
 				err := client.SetActivity(client.Activity{
-					State:      "KageKage_Tetris",
+					State:      "KageKage_Block",
 					Details:    "I'm playing " + msg,
 					LargeImage: "icon",
 					LargeText:  msg,
@@ -617,7 +617,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			}
 			if g.Is_pause {
 				err := client.SetActivity(client.Activity{
-					State:      "KageKage_Tetris",
+					State:      "KageKage_Block",
 					Details:    "I'm pausing " + msg,
 					LargeImage: "icon",
 					LargeText:  msg,
@@ -647,10 +647,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 var Game_Start_time time.Time
 
 //go:embed key.txt
-var KAGEKAGE_TETRIS_DISCORD_KEY string
+var KAGEKAGE_Block_DISCORD_KEY string
 
 func main() {
-	err := client.Login(KAGEKAGE_TETRIS_DISCORD_KEY)
+	err := client.Login(KAGEKAGE_Block_DISCORD_KEY)
 	if err != nil {
 		log.Print(err)
 	}
@@ -658,8 +658,8 @@ func main() {
 	Game_Start_time = time.Now()
 
 	err = client.SetActivity(client.Activity{
-		State:      "KageKage_Tetris!!!",
-		Details:    "I'm playing KageKage_Tetris!",
+		State:      "KageKage_Block!!!",
+		Details:    "I'm playing KageKage_Block!",
 		LargeImage: "icon",
 		//LargeText:  "This is the large image :D",
 		SmallImage: "icon",
@@ -674,7 +674,7 @@ func main() {
 	}
 
 	ebiten.SetWindowSize(600, 800)
-	ebiten.SetWindowTitle("KageKage_tetris")
+	ebiten.SetWindowTitle("KageKage_Block")
 	ebiten.SetMaxTPS(-1)
 	g := &Game{Data: [][]int{}}
 	g.Init()

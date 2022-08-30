@@ -1,18 +1,18 @@
-name: kagekagetetris
+name: kagekageBlock
 version: git
-summary: The OSS game like Tetris!
+summary: The OSS game like Block!
 description: |
-  It is the game like Tetris felt Kage!
+  It is the game like Block felt Kage!
 confinement: devmode
 base: core18
 parts:
   test-httplab:
     plugin: go
-    go-importpath: github.com/PenguinCabinet/kagekage_Tetris
+    go-importpath: github.com/PenguinCabinet/kagekage_Block
     source: .
     source-type: git
     build-packages:
       - gcc
 apps:
-  kagekagetetris:
-    command: kagekagetetris
+  kagekageBlock:
+    command: kagekageBlock

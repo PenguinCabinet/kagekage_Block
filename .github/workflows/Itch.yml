@@ -1,0 +1,38 @@
+name: Itch Deploy
+
+on:
+  push:
+    tags:
+    - "v[0-9]+.[0-9]+.[0-9]+"
+
+env:
+  ITCH_USERNAME: penguincabinet
+  ITCH_GAME_ID: kagekage_Block
+jobs:
+  deploy:
+    name: Upload to Itch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - windows
+          - darwin
+          - linux
+    runs-on: ubuntu-latest
+    name: Deploy - Itch.io ${{ matrix.template }}
+    steps:
+      - uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          repo: 'penguincabinet/kagekage_Block'
+          version: 'tags/${GITHUB_REF##*/}'
+          file: 'kagekage_Block_${{ matrix.channel }}_x86_64.zip'
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.BUTLER_API_KEY}}
+          gameData: kagekage_Block_${{ matrix.channel }}_x86_64.zip
+          itchUsername: ${{env.ITCH_USERNAME}}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${GITHUB_REF##*/}

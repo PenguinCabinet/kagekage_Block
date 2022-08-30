@@ -1,4 +1,4 @@
-project_name: kagekage_Tetris
+project_name: kagekage_Block
 env:
   - GO111MODULE=on
 before:
@@ -9,7 +9,7 @@ checksum:
 
 builds:
   - main: .
-    binary: kagekage_Tetris
+    binary: kagekage_Block
     ldflags:
       - -s -w
       - -X main.Version={{.Version}}
@@ -29,7 +29,7 @@ archives:
       386: i386
       amd64: x86_64
     format_overrides:
-      - goos: windows
+      - goos: darwin
         format: zip
     files:
       - images
